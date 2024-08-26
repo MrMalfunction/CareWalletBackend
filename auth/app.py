@@ -14,23 +14,43 @@ from passlib.handlers.pbkdf2 import pbkdf2_sha256
 
 
 def fernet_decrypt(data: str) -> str:
-    db_enc_key = os.environ['DB_ENC_KEY']  # Fernet Key
-    f_key = Fernet(str.encode(db_enc_key))
-    return str(f_key.decrypt(data))
-
-
-def fernet_encrypt(data: bytes):
+    """
+    Helper function to help decrypt fernet encrypted data.
+    :param data: string you want to decode.
+    :return: returns decoded string in utf-8 format
+    """
     db_enc_key = os.environ['DB_ENC_KEY']  # Fernet Key
     f_key = Fernet(db_enc_key)
-    return f_key.encrypt(data)
+    return f_key.decrypt(data.encode('utf-8')).decode('utf-8')
+
+
+def fernet_encrypt(data: str) -> str:
+    """
+    Helper function to help encrypt data using Fernet
+    :param data: string you want to encode
+    :return: encrypted data in str format.
+    """
+    db_enc_key = os.environ['DB_ENC_KEY']  # Fernet Key
+    f_key = Fernet(db_enc_key)
+    return f_key.encrypt(data.encode('utf-8')).decode('utf-8')
 
 
 def encrypt_jwt(data: dict):
+    """
+    Helper function to create a jwt token from dict.
+    :param data: dictionary of data to tokenize
+    :return: token as string
+    """
     jwt_key = os.environ['JWT_KEY']
     return jwt.encode(data, jwt_key, algorithm='HS256')
 
 
 def decrypt_jwt(data) -> dict:
+    """
+    Helper function to decrypt a jwt token from string.
+    :param data: raw token in str format
+    :return: decrypted token in dict format
+    """
     jwt_key = os.environ['JWT_KEY']
     return jwt.decode(data, jwt_key, algorithms=['HS256'])
 
@@ -41,6 +61,13 @@ def generate_otp(length=6):
 
 
 def send_otp_email(email, otp):
+    """
+    Helper function to send an email with otp. Currently only able to send to my personal email:
+     "007bohora@gmail.com" using my custom domain via SES. [As domain in sandbox mode]
+    :param email: email_id to send data too.
+    :param otp: what otp to send to user.
+    :return: None
+    """
     ses_client = boto3.client('ses', region_name='us-east-1')
     """Send an OTP email using Amazon SES."""
     ses_client.send_email(
@@ -55,6 +82,7 @@ def send_otp_email(email, otp):
     )
 
 
+# Basic Init.
 dynamodb = boto3.resource('dynamodb')
 user_table = dynamodb.Table(os.environ['USER_TABLE'])
 request_check = {"statusCode": 400,
@@ -67,6 +95,11 @@ request_check = {"statusCode": 400,
 
 
 def login(event):
+    """
+    Takes in event body and tries to log in user.
+    :param event: user provided data
+    :return: updated request_check to return to user.
+    """
     try:
         actual_user_id = str(uuid.uuid5(uuid.NAMESPACE_OID, event['username']))
         user_details = user_table.query(KeyConditionExpression=Key('user_id').eq(actual_user_id))
@@ -106,6 +139,11 @@ def login(event):
 
 
 def register(event):
+    """
+    Takes in event body and tries to register user.
+    :param event: user provided data
+    :return: updated request_check to return to user.
+    """
     try:
         converted_user_id = str(uuid.uuid5(uuid.NAMESPACE_OID, event['username']))
         user_password = event['password']
@@ -130,6 +168,11 @@ def register(event):
 
 
 def session_verify(event):
+    """
+    Takes in event header and tries to check if the session is still active.
+    :param event: user provided header
+    :return: updated request_check to return to user.
+    """
     try:
         # print(event)
         auth_header_data = event['headers']['authorization']
@@ -162,6 +205,11 @@ def session_verify(event):
 
 
 def logout(event):
+    """
+    Takes in event body and logges out user.
+    :param event: user provided data
+    :return: updated request_check to return to user.
+    """
     try:
         auth_header_data = event['headers'].get('authorization')
         if auth_header_data is None:
@@ -208,6 +256,11 @@ def logout(event):
 
 
 def reset_set_new_otp(event):
+    """
+    Takes in event body and generates a otp for user to reset password with. Also sends it to user email, found in db.
+    :param event: user provided data
+    :return: updated request_check to return to user.
+    """
     try:
         username = event['username']
         converted_user_id = str(uuid.uuid5(uuid.NAMESPACE_OID, username))
@@ -244,6 +297,11 @@ def reset_set_new_otp(event):
 
 
 def reset_password(event):
+    """
+    Takes in event body and resets user's password.
+    :param event: user provided data
+    :return: updated request_check to return to user.
+    """
     try:
         username = event['username']
         converted_user_id = str(uuid.uuid5(uuid.NAMESPACE_OID, username))

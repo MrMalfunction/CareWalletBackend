@@ -9,6 +9,8 @@ import simplejson
 from boto3.dynamodb.conditions import Key
 from cryptography.fernet import Fernet
 
+# Basic Auth
+
 dynamodb = boto3.resource('dynamodb')
 
 request_check = {"statusCode": 400,
@@ -21,28 +23,53 @@ request_check = {"statusCode": 400,
 
 
 def fernet_decrypt(data: str) -> str:
+    """
+    Helper function to help decrypt fernet encrypted data.
+    :param data: string you want to decode.
+    :return: returns decoded string in utf-8 format
+    """
     db_enc_key = os.environ['DB_ENC_KEY']  # Fernet Key
     f_key = Fernet(db_enc_key)
     return f_key.decrypt(data.encode('utf-8')).decode('utf-8')
 
 
 def fernet_encrypt(data: str) -> str:
+    """
+    Helper function to help encrypt data using Fernet
+    :param data: string you want to encode
+    :return: encrypted data in str format.
+    """
     db_enc_key = os.environ['DB_ENC_KEY']  # Fernet Key
     f_key = Fernet(db_enc_key)
     return f_key.encrypt(data.encode('utf-8')).decode('utf-8')
 
 
 def encrypt_jwt(data: dict):
+    """
+    Helper function to create a jwt token from dict.
+    :param data: dictionary of data to tokenize
+    :return: token as string
+    """
     jwt_key = os.environ['JWT_KEY']
     return jwt.encode(data, jwt_key, algorithm='HS256')
 
 
 def decrypt_jwt(data) -> dict:
+    """
+    Helper function to decrypt a jwt token from string.
+    :param data: raw token in str format
+    :return: decrypted token in dict format
+    """
     jwt_key = os.environ['JWT_KEY']
     return jwt.decode(data, jwt_key, algorithms=['HS256'])
 
 
 def session_verify(event):
+    """
+    Takes in event header and tries to check if the session is still active.
+    :param event: user provided header
+    :return: updated request_check to return to user.
+    """
     try:
         # print(event)
         auth_header_data = event['headers']['authorization']
