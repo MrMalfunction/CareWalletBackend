@@ -34,6 +34,8 @@ Resources:
       CorsConfiguration:
         AllowHeaders:
           - "Content-Type"
+          - "Access-Control-Allow-Origin"
+          - "Authorization"
         AllowOrigins:
           - "*"
         AllowMethods:

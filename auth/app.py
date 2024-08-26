@@ -98,6 +98,8 @@ def login(event):
             dump_data = simplejson.dumps({"data": jwt_encoded, "message": "Login Success"})
             request_check['body'] = dump_data
             return request_check
+        request_check['body'] = simplejson.dumps({"data": {}, "message": "Invalid username or password."})
+        return request_check
     except KeyError as e:
         request_check['body'] = simplejson.dumps({"data": {}, "message": "Need this data " + str(e)})
         return request_check
@@ -124,7 +126,7 @@ def register(event):
 
 def session_verify(event):
     try:
-        print(event)
+        # print(event)
         auth_header_data = event['headers']['authorization']
         if auth_header_data is None:
             request_check['body'] = simplejson.dumps({"data": {}, "message": "Session verify failed."})
@@ -284,7 +286,7 @@ def lambda_handler(event, context):
         return request_check
     event_body = event['body']
     event_body = simplejson.loads(event_body)
-    print(event_body)
+    # print(event_body)
 
     if "type" not in event_body:
         request_check['body'] = simplejson.dumps({"data": {}, "message": "Type not provided."})

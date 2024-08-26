@@ -88,6 +88,7 @@ def lambda_handler(event, context):
         form_details = forms_table.query(
             KeyConditionExpression=Key('user_id').eq(actual_user_id) & Key('form_type').eq(form_type))
         if form_details['Count'] == 0:
+            request_check['statusCode'] = 400
             request_check['body'] = simplejson.dumps({"data": {}, "message": "Form not found."})
             return request_check
         decrypted_json_form_data = simplejson.loads(
