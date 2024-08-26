@@ -37,9 +37,7 @@ Resources:
           - "Access-Control-Allow-Origin"
           - "Authorization"
         AllowOrigins:
-          - "https://carewallet.amolbohora.com"
-          - "http://carewallet-amolbohora.s3-website-us-east-1.amazonaws.com"
-          - "http://carewallet.amolbohora.com"
+          - "http://carewallet.amolbohora.com.s3-website-us-east-1.amazonaws.com"
         AllowMethods:
           - "POST"
           - "GET"
