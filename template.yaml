@@ -1,0 +1,202 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  CareWallet
+
+  Sample SAM Template for CareWallet
+
+Metadata:
+  AWS::ServerlessRepo::Application:
+    Name: CareWalletTakeHome
+    Description: Care Wallet's Take Home Asignment
+    Author: Amol Bohora
+    SpdxLicenseId: UNLICENSED
+    ReadmeUrl: README.md
+    Labels: [ 'CareWallet' ]
+    SemanticVersion: 0.1.0
+
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+    MemorySize: 400
+
+Resources:
+  CareWalletAPI:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      Description: HTTP API for all serverless functions of CareWallet's Take Home.
+      StageName: Prod
+      Domain:
+        DomainName: "api-carewallet.amolbohora.com"
+        CertificateArn: arn:aws:acm:us-east-1:404907247506:certificate/03b640b3-c242-4863-bd67-9fbf767841c8
+      CorsConfiguration:
+        AllowHeaders:
+          - "Content-Type"
+        AllowOrigins:
+          - "*"
+        AllowMethods:
+          - "POST"
+          - "GET"
+          - "OPTIONS"
+
+
+  authModule: # JWT Secret will/is directly entered via console to avoid leaking in repo. Ideally use KMS or AWS Secret Manager
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: auth/
+      Handler: app.lambda_handler
+      Runtime: python3.11
+      Description: Handles all auth related tasks like- Login, SignUp, Reset, SessionCheck
+      Policies:
+        - AmazonDynamoDBFullAccess
+        - AmazonSESFullAccess
+      Events:
+        CareWalletAPI:
+          Type: HttpApi # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /auth
+            Method: post
+            ApiId:
+              Ref: CareWalletAPI
+
+  fillFormModule: # Fernet Secret will/is directly entered via console to avoid leaking in repo. Ideally use KMS or AWS Secret Manager.
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: fillFormData/
+      Handler: app.lambda_handler
+      Runtime: python3.11
+      Description: Handles all filling of all forms. Forms are have predefined number(type), invalid form numbers are not accepted
+      Policies:
+        - AmazonDynamoDBFullAccess
+      Events:
+        authCheck:
+          Type: HttpApi # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /fill_form
+            Method: post
+            ApiId:
+              Ref: CareWalletAPI
+
+
+  getFormDataModule: # Fernet Secret will/is directly entered via console to avoid leaking in repo. Ideally use KMS or AWS Secret Manager.
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: getFormData/
+      Handler: app.lambda_handler
+      Runtime: python3.11
+      Description: Handles getting of data of form id.
+      Policies:
+        - AmazonDynamoDBFullAccess
+      Events:
+        authCheck:
+          Type: HttpApi # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /get_form
+            Method: POST
+            ApiId:
+              Ref: CareWalletAPI
+
+  listAllFormsModule: # Fernet Secret will/is directly entered via console to avoid leaking in repo. Ideally use KMS or AWS Secret Manager.
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: listUserForms/
+      Handler: app.lambda_handler
+      Runtime: python3.11
+      Description: Returns a list of forms with types filled by user
+      Policies:
+        - AmazonDynamoDBFullAccess
+      Events:
+        authCheck:
+          Type: HttpApi # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /list_forms
+            Method: POST
+            ApiId:
+              Ref: CareWalletAPI
+
+
+  UserDataTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: user_details
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+
+  SessionTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: user_ssn
+      AttributeDefinitions:
+        - AttributeName: session_id
+          AttributeType: S
+        - AttributeName: user_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: session_id
+          KeyType: HASH
+        - AttributeName: user_id
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: True
+
+
+  FilledFormTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: forms_details
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+        - AttributeName: form_type
+          AttributeType: S
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+        - AttributeName: form_type
+          KeyType: RANGE
+      BillingMode: PAY_PER_REQUEST
+
+  UserOTPS:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: user_otps
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: True
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  CareWalletAPI:
+    Description: "API Gateway endpoint URL for Prod stage for Hello World function"
+    Value: !Sub "https://${CareWalletAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/hello/"
+  AuthFunction:
+    Description: "Auth Lambda Function ARN"
+    Value: !GetAtt authModule.Arn
+  FormFillFunction:
+    Description: "Function to fill form data ARN"
+    Value: !GetAtt fillFormModule.Arn
+  GetFormDataFunction:
+    Description: "Function to get form data ARN"
+    Value: !GetAtt getFormDataModule.Arn
+  listAllFormsModule:
+    Description: "Function to get form data ARN"
+    Value: !GetAtt listAllFormsModule.Arn

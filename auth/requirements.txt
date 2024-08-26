@@ -1,0 +1,5 @@
+passlib~=1.7.4
+boto3~=1.35.5
+cryptography~=43.0.0
+pyjwt~=1.7.1
+simplejson~=3.19.3
