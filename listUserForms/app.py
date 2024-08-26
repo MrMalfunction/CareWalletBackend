@@ -64,13 +64,16 @@ def lambda_handler(event, context):
     if 'body' not in event:
         request_check['body'] = simplejson.dumps({"data": {}, "message": "Pls provide a body."})
         return request_check
+    auth_header_data = event['headers']['authorization']
+    provided_token = auth_header_data.split(" ")[1]
+    decoded_token = decrypt_jwt(provided_token)
     event_body = event['body']
     event_body = json.loads(event_body)
     try:
         ssn_check = session_verify(event)
         if ssn_check['statusCode'] != 200:
             return ssn_check
-        actual_user_id = str(uuid.uuid5(uuid.NAMESPACE_OID, event_body['username']))
+        actual_user_id = str(uuid.uuid5(uuid.NAMESPACE_OID, decoded_token['username']))
         forms_table = dynamodb.Table(os.environ['FORMS_FILLED'])
         query_params = {
             'KeyConditionExpression': 'user_id = :user_id',

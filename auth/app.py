@@ -110,6 +110,11 @@ def register(event):
         converted_user_id = str(uuid.uuid5(uuid.NAMESPACE_OID, event['username']))
         user_password = event['password']
         user_email = event['email']
+        if user_password == "" or user_email == "" or event['username'] == "":
+            request_check['statusCode'] = 400
+            request_check['body'] = simplejson.dumps({"data": {}, "message": "Invalid username or password."})
+            return request_check
+
         existing_user_details = user_table.query(KeyConditionExpression=Key('user_id').eq(converted_user_id))
         if existing_user_details['Count'] > 0:
             request_check['body'] = simplejson.dumps({"data": {}, "message": "Username already exists. Pls Login"})
@@ -261,12 +266,12 @@ def reset_password(event):
             request_check['statusCode'] = 400
             request_check['body'] = simplejson.dumps({"data": {}, "message": "Incorrect OTP."})
             return request_check
-
+        hash_password = pbkdf2_sha256.encrypt(new_password)
         user_table.update_item(
             Key={'user_id': converted_user_id},
             UpdateExpression="SET password = :new_password",
             ExpressionAttributeValues={
-                ':new_password': new_password
+                ':new_password': hash_password
             }
         )
         otp_table.delete_item(
