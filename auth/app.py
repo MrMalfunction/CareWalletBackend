@@ -20,7 +20,7 @@ def fernet_decrypt(data: str) -> str:
     :return: returns decoded string in utf-8 format
     """
     db_enc_key = os.environ['DB_ENC_KEY']  # Fernet Key
-    f_key = Fernet(db_enc_key)
+    f_key = Fernet(db_enc_key.encode('utf-8'))
     return f_key.decrypt(data.encode('utf-8')).decode('utf-8')
 
 
@@ -31,7 +31,7 @@ def fernet_encrypt(data: str) -> str:
     :return: encrypted data in str format.
     """
     db_enc_key = os.environ['DB_ENC_KEY']  # Fernet Key
-    f_key = Fernet(db_enc_key)
+    f_key = Fernet(db_enc_key.encode('utf-8'))
     return f_key.encrypt(data.encode('utf-8')).decode('utf-8')
 
 
