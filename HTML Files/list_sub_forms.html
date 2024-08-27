@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>View Submitted Forms</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        text-align: center;
+        background-color: #f4f4f4;
+      }
+      header {
+        background-color: #333;
+        color: white;
+        padding: 1rem;
+      }
+      table {
+        width: 80%;
+        margin: 2rem auto;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 1rem;
+        border: 1px solid #ddd;
+      }
+      th {
+        background-color: #333;
+        color: white;
+      }
+      .logout-btn {
+        position: absolute;
+        right: 1rem;
+        top: 1rem;
+        background-color: #f44336;
+        border: none;
+        color: white;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        font-size: 1rem;
+      }
+      .btn {
+        display: inline-block;
+        padding: 1rem 2rem;
+        margin: 1rem;
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Submitted Forms</h1>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </header>
+    <main>
+      <table id="formsTable">
+        <thead>
+          <tr>
+            <th>Form Type</th>
+            <th>Created On</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Data will be inserted here -->
+        </tbody>
+      </table>
+    </main>
+
+    <script>
+      const token = localStorage.getItem('jwt');
+      async function verifySession() {
+        if (token) {
+          try {
+            const response = await fetch(
+              'https://api-carewallet.amolbohora.com/auth',
+              {
+                method: 'POST',
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  type: 'session_verify',
+                }),
+              }
+            );
+            // console.log(response);
+            // const data = response.json();
+            if (response.ok) {
+            } else {
+              sessionStorage.removeItem('jwt'); // Remove invalid token
+              window.location.href = '/login.html';
+            }
+          } catch (error) {
+            console.error('Session verification failed:', error);
+            sessionStorage.removeItem('jwt'); // Remove invalid token
+            window.location.href = '/login.html';
+          }
+        } else {
+          console.log('User not logged in.');
+        }
+      }
+      verifySession();
+
+      // Decode JWT token to get the username
+
+      async function logout() {
+        const jwtToken = localStorage.getItem('jwt');
+        if (!jwtToken) {
+          console.error('No JWT token found in local storage.');
+          return;
+        }
+
+        try {
+          const response = await fetch(
+            'https://api-carewallet.amolbohora.com/auth',
+            {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${jwtToken}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ type: 'logout' }),
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error('Logout failed');
+          }
+
+          localStorage.removeItem('jwt');
+          window.location.href = '/login.html'; // Redirect to login page after logout
+        } catch (error) {
+          console.error('Logout failed:', error);
+        }
+      }
+      async function fetchForms() {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(
+          atob(base64)
+            .split('')
+            .map(function (c) {
+              return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            })
+            .join('')
+        );
+        // console.log(typeof jsonPayload);
+
+        const { username } = JSON.parse(jsonPayload);
+        // console.log(username);
+
+        function displayForms(result) {
+          const tableBody = document.querySelector('#formsTable tbody');
+          tableBody.innerHTML = '';
+
+          if (Array.isArray(result.data)) {
+            result.data.forEach((form) => {
+              const row = document.createElement('tr');
+              row.innerHTML = `
+              <td><a href="view_form.html?form_type=${encodeURIComponent(
+                form.form_type
+              )}">${form.form_type}</a></td>
+                        <td>${new Date(
+                          parseInt(form.created_on) * 1000
+                        ).toLocaleString()}</td>
+                    `;
+              tableBody.appendChild(row);
+            });
+          } else {
+            console.error('Unexpected data format:', result);
+          }
+        }
+
+        try {
+          const response = await fetch(
+            'https://api-carewallet.amolbohora.com/list_forms',
+            {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                form_type: 'Form1',
+              }),
+            }
+          );
+          if (!response.ok) {
+            const data = await response.json();
+            if (data.message === 'Session expired or invalid.') {
+              sessionStorage.removeItem('jwt'); // Remove invalid token
+              window.location.href = '/login';
+            }
+            throw new Error('Failed to fetch forms');
+            alert('Failed to fetch form data');
+          }
+          const data = await response.json();
+          displayForms(data);
+        } catch (error) {
+          console.error('Error fetching forms:', error);
+        }
+      }
+
+      // Fetch forms on page load
+      window.onload = fetchForms;
+    </script>
+  </body>
+</html>

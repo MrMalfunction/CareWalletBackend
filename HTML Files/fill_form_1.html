@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Patient Information Form</title>
+    <style>
+      button {
+        font-size: 16px;
+        padding: 10px 20px;
+        cursor: pointer;
+      }
+      .date-group {
+        display: flex;
+        gap: 5px;
+      }
+      .date-group input {
+        width: 100px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>PATIENT INFORMATION</h1>
+    <form id="patientForm">
+      <fieldset>
+        <legend>Date</legend>
+        <input type="text" name="date" placeholder="MM/DD/YYYY" required />
+      </fieldset>
+
+      <fieldset>
+        <legend>FULL NAME</legend>
+        <label
+          >First Name: <input type="text" name="firstName" required
+        /></label>
+        <label>Middle Name: <input type="text" name="middleName" /></label>
+        <label>Last Name: <input type="text" name="lastName" required /></label>
+      </fieldset>
+
+      <fieldset>
+        <legend>PREFFERED NAME</legend>
+        <input type="text" name="preferredName" />
+      </fieldset>
+
+      <fieldset>
+        <legend>SEX</legend>
+        <input type="text" name="sex" placeholder="Enter your sex or gender" />
+      </fieldset>
+
+      <fieldset>
+        <legend>DOB</legend>
+        <input type="text" name="dob" placeholder="MM/DD/YYYY" required />
+      </fieldset>
+
+      <fieldset>
+        <legend>AGE</legend>
+        <input type="number" name="age" required />
+      </fieldset>
+
+      <fieldset>
+        <legend>MAIDEN NAME</legend>
+        <input type="text" name="maidenName" />
+      </fieldset>
+
+      <fieldset>
+        <legend>SOCIAL SECURITY#</legend>
+        <input type="text" name="socialSecurity" />
+      </fieldset>
+
+      <fieldset>
+        <legend>MARITAL STATUS</legend>
+        <select name="maritalStatus" required>
+          <option value="Single">Single</option>
+          <option value="Married">Married</option>
+          <option value="Widowed">Widowed</option>
+          <option value="Divorced">Divorced</option>
+          <option value="Separated">Separated</option>
+          <option value="Partner">Partner</option>
+        </select>
+      </fieldset>
+
+      <fieldset>
+        <legend>HOME ADDRESS</legend>
+        <label
+          >Street Address: <input type="text" name="streetAddress" required
+        /></label>
+        <label>City: <input type="text" name="city" required /></label>
+        <label
+          >State / Province: <input type="text" name="state" required
+        /></label>
+        <label
+          >Postal / Zip Code: <input type="text" name="postalCode" required
+        /></label>
+      </fieldset>
+
+      <fieldset>
+        <legend>PHONE</legend>
+        <label>Home: <input type="tel" name="phoneHome" /></label>
+        <label>Cell: <input type="tel" name="phoneCell" /></label>
+        <label>Work: <input type="tel" name="phoneWork" /></label>
+      </fieldset>
+
+      <fieldset>
+        <legend>EMAIL ADDRESS</legend>
+        <input type="email" name="email" />
+      </fieldset>
+
+      <fieldset>
+        <legend>OCCUPATION</legend>
+        <input type="text" name="occupation" />
+      </fieldset>
+
+      <fieldset>
+        <legend>EMPLOYER</legend>
+        <input type="text" name="employer" />
+      </fieldset>
+
+      <fieldset>
+        <legend>DRUG ALLERGIES</legend>
+        <input type="text" name="drugAllergies" />
+      </fieldset>
+
+      <fieldset>
+        <legend>PHARMACY</legend>
+        <label>Pharmacy Name: <input type="text" name="pharmacyName" /></label>
+        <label>Location: <input type="text" name="pharmacyLocation" /></label>
+        <label>Phone #: <input type="tel" name="pharmacyPhone" /></label>
+      </fieldset>
+
+      <fieldset>
+        <legend>WHO MAY WE THANK FOR THIS REFERRAL</legend>
+        <input type="text" name="referral" />
+      </fieldset>
+
+      <fieldset>
+        <legend>OTHER FAMILY MEMBERS SEEN HERE</legend>
+        <input type="text" name="familyMembers" />
+      </fieldset>
+
+      <h2>INSURANCE INFORMATION</h2>
+      <fieldset>
+        <legend>PRIMARY INSURANCE</legend>
+        <label
+          >Insurer Name:
+          <input type="text" name="primaryInsuranceName" required
+        /></label>
+        <label>Card #: <input type="text" name="primaryInsuranceCard" /></label>
+      </fieldset>
+
+      <fieldset>
+        <legend>SECONDARY INSURANCE</legend>
+        <label
+          >Insurer Name:
+          <input type="text" name="secondaryInsuranceName" required
+        /></label>
+        <label
+          >Card #: <input type="text" name="secondaryInsuranceCard"
+        /></label>
+      </fieldset>
+
+      <fieldset>
+        <legend>POLICY HOLDER</legend>
+        <select name="policyHolder">
+          <option value="Self">Self</option>
+          <option value="Spouse">Spouse</option>
+          <option value="Parent">Parent</option>
+          <option value="Legal Guardian">Legal Guardian</option>
+        </select>
+      </fieldset>
+
+      <h2>POLICY HOLDER INFORMATION</h2>
+      <fieldset>
+        <legend>NAME</legend>
+        <input type="text" name="policyHolderName" />
+      </fieldset>
+
+      <fieldset>
+        <legend>DOB</legend>
+        <input type="text" name="policyHolderDob" placeholder="MM/DD/YYYY" />
+      </fieldset>
+
+      <fieldset>
+        <legend>RELATIONSHIP</legend>
+        <input type="text" name="policyHolderRelationship" />
+      </fieldset>
+
+      <fieldset>
+        <legend>PHONE</legend>
+        <input type="tel" name="policyHolderPhone" />
+      </fieldset>
+
+      <fieldset>
+        <legend>SOCIAL SECURITY#</legend>
+        <input type="text" name="policyHolderSocialSecurity" />
+      </fieldset>
+
+      <h2>EMERGENCY CONTACT INFORMATION</h2>
+      <fieldset>
+        <legend>NAME</legend>
+        <input type="text" name="emergencyContactName" />
+      </fieldset>
+
+      <fieldset>
+        <legend>RELATIONSHIP</legend>
+        <input type="text" name="emergencyContactRelationship" />
+      </fieldset>
+
+      <fieldset>
+        <legend>HOME PHONE</legend>
+        <input type="tel" name="emergencyContactHomePhone" />
+      </fieldset>
+
+      <fieldset>
+        <legend>MOBILE PHONE</legend>
+        <input type="tel" name="emergencyContactMobilePhone" />
+      </fieldset>
+
+      <fieldset>
+        <legend>WORK PHONE</legend>
+        <input type="tel" name="emergencyContactWorkPhone" />
+      </fieldset>
+
+      <button type="submit">Submit</button>
+    </form>
+
+    <script>
+      function get_username() {
+        token = localStorage.getItem('jwt');
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(
+          atob(base64)
+            .split('')
+            .map(function (c) {
+              return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            })
+            .join('')
+        );
+        // console.log(typeof jsonPayload);
+
+        const { username } = JSON.parse(jsonPayload);
+        return username;
+      }
+      async function verifySession() {
+        const token = localStorage.getItem('jwt');
+        if (token) {
+          try {
+            const response = await fetch(
+              'https://api-carewallet.amolbohora.com/auth',
+              {
+                method: 'POST',
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  type: 'session_verify',
+                }),
+              }
+            );
+
+            if (response.ok) {
+              console.log('User session invalid');
+            } else {
+              sessionStorage.removeItem('jwt'); // Remove invalid token
+              window.location.href = '/login.html';
+            }
+          } catch (error) {
+            console.error('Session verification failed:', error);
+            sessionStorage.removeItem('jwt'); // Remove token on failure
+          }
+        } else {
+          console.log('User not logged in.');
+          sessionStorage.removeItem('jwt'); // Remove invalid token
+          window.location.replace('/login.html');
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', verifySession);
+
+      document
+        .getElementById('patientForm')
+        .addEventListener('submit', function (event) {
+          event.preventDefault();
+
+          function formatDate(dateStr) {
+            if (!dateStr) return ''; // Handle empty date input
+            const [month, day, year] = dateStr.split('/').map(Number);
+            if (!month || !day || !year) return ''; // Handle invalid date input
+            const formattedMonth = month.toString().padStart(2, '0');
+            const formattedDay = day.toString().padStart(2, '0');
+            return `${year}-${formattedMonth}-${formattedDay}`;
+          }
+
+          const formData = new FormData(this);
+          const data = {
+            form_type: 'Form1',
+            form_data: {
+              Date: formatDate(formData.get('date')),
+              FirstName: formData.get('firstName') || '',
+              MiddleName: formData.get('middleName') || '',
+              LastName: formData.get('lastName') || '',
+              PreferredName: formData.get('preferredName') || '',
+              Sex: formData.get('sex') || '',
+              Dob: formatDate(formData.get('dob')),
+              Age: formData.get('age') || '',
+              MaidenName: formData.get('maidenName') || '',
+              SocialSecurity: formData.get('socialSecurity') || '',
+              MaritalStatus: formData.get('maritalStatus') || '',
+              StreetAddress: formData.get('streetAddress') || '',
+              City: formData.get('city') || '',
+              State: formData.get('state') || '',
+              PostalCode: formData.get('postalCode') || '',
+              PhoneHome: formData.get('phoneHome') || '',
+              PhoneCell: formData.get('phoneCell') || '',
+              PhoneWork: formData.get('phoneWork') || '',
+              Email: formData.get('email') || '',
+              Occupation: formData.get('occupation') || '',
+              Employer: formData.get('employer') || '',
+              DrugAllergies: formData.get('drugAllergies') || '',
+              PharmacyName: formData.get('pharmacyName') || '',
+              PharmacyLocation: formData.get('pharmacyLocation') || '',
+              PharmacyPhone: formData.get('pharmacyPhone') || '',
+              Referral: formData.get('referral') || '',
+              FamilyMembers: formData.get('familyMembers') || '',
+              PrimaryInsuranceName: formData.get('primaryInsuranceName') || '',
+              PrimaryInsuranceCard: formData.get('primaryInsuranceCard') || '',
+              SecondaryInsuranceName:
+                formData.get('secondaryInsuranceName') || '',
+              SecondaryInsuranceCard:
+                formData.get('secondaryInsuranceCard') || '',
+              PolicyHolder: formData.get('policyHolder') || '',
+              PolicyHolderName: formData.get('policyHolderName') || '',
+              PolicyHolderDob: formatDate(formData.get('policyHolderDob')),
+              PolicyHolderRelationship:
+                formData.get('policyHolderRelationship') || '',
+              PolicyHolderPhone: formData.get('policyHolderPhone') || '',
+              PolicyHolderSocialSecurity:
+                formData.get('policyHolderSocialSecurity') || '',
+              EmergencyContactName: formData.get('emergencyContactName') || '',
+              EmergencyContactRelationship:
+                formData.get('emergencyContactRelationship') || '',
+              EmergencyContactHomePhone:
+                formData.get('emergencyContactHomePhone') || '',
+              EmergencyContactMobilePhone:
+                formData.get('emergencyContactMobilePhone') || '',
+              EmergencyContactWorkPhone:
+                formData.get('emergencyContactWorkPhone') || '',
+            },
+          };
+
+          fetch('https://api-carewallet.amolbohora.com/fill_form', {
+            method: 'POST',
+            headers: {
+              Authorization: 'Bearer ' + localStorage.getItem('jwt'),
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+          })
+            .then((response) => {
+              if (response.ok) {
+                console.log('Form submitted successfully');
+                alert(
+                  'Form submitted successfully. Resubmitting would replace the curent information. Redirecting to Homepage.'
+                );
+                window.location.href = '/';
+              } else {
+                console.log(`Error submitting form: ${response.status}`);
+                throw new Error('Error Submitting Form');
+              }
+            })
+            .then((responseData) => {
+              console.log('Response Data:', responseData);
+            })
+            .catch((error) => {
+              console.error('Error submitting form:', error);
+            });
+        });
+      verifySession();
+    </script>
+  </body>
+</html>

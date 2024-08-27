@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CareWallet</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        text-align: center;
+        background-color: #f4f4f4;
+      }
+      header {
+        background-color: #333;
+        color: white;
+        padding: 1rem;
+        position: relative;
+      }
+      header h1 {
+        margin: 0;
+      }
+      .logout-btn {
+        position: absolute;
+        right: 1rem;
+        top: 1rem;
+        background-color: #f44336;
+        border: none;
+        color: white;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        font-size: 1rem;
+      }
+      .btn {
+        display: inline-block;
+        padding: 1rem 2rem;
+        margin: 1rem;
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+      }
+      .fill-form {
+        background-color: #4caf50;
+      }
+      .view-forms {
+        background-color: #2196f3;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>CareWallet</h1>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </header>
+    <main>
+      <button class="btn fill-form" onclick="navigateToFillForm1()">
+        Fill Form 1
+      </button>
+      <button class="btn fill-form" onclick="navigateToFillForm2()">
+        Fill Form 2
+      </button>
+      <button class="btn view-forms" onclick="navigateToViewForms()">
+        View All Submitted Forms
+      </button>
+    </main>
+
+    <script>
+      function navigateToFillForm1() {
+        window.location.href = '/fill_form_1.html'; // Adjust the path as needed
+      }
+      function navigateToFillForm2() {
+        window.location.href = '/fill_form_2.html'; // Adjust the path as needed
+      }
+
+      function navigateToViewForms() {
+        window.location.href = '/list_sub_forms.html'; // Adjust the path as needed
+      }
+
+      async function verifySession() {
+        const token = localStorage.getItem('jwt');
+        if (token) {
+          try {
+            const response = await fetch(
+              'https://api-carewallet.amolbohora.com/auth',
+              {
+                method: 'POST',
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  type: 'session_verify',
+                }),
+              }
+            );
+            console.log(response);
+            // const data = response.json();
+            if (response.ok) {
+            } else {
+              sessionStorage.removeItem('jwt'); // Remove invalid token
+              window.location.href = '/login.html';
+            }
+          } catch (error) {
+            console.error('Session verification failed:', error);
+            sessionStorage.removeItem('jwt'); // Remove invalid token
+            window.location.href = '/login.html';
+          }
+        } else {
+          console.log('User not logged in.');
+          sessionStorage.removeItem('jwt'); // Remove invalid token
+          window.location.href = '/login.html';
+        }
+      }
+      verifySession();
+
+      async function logout() {
+        const jwtToken = localStorage.getItem('jwt');
+        if (!jwtToken) {
+          console.error('No JWT token found in local storage.');
+          return;
+        }
+
+        try {
+          const response = await fetch(
+            'https://api-carewallet.amolbohora.com/auth',
+            {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${jwtToken}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ type: 'logout' }),
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error('Logout failed');
+          }
+
+          localStorage.removeItem('jwt');
+          window.location.href = '/login.html'; // Adjust the path as needed
+        } catch (error) {
+          console.error('Logout failed:', error);
+        }
+      }
+    </script>
+  </body>
+</html>

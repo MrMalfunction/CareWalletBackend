@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>View Form</title>
+    <header>
+      <h1>View Form Data</h1>
+      <button class="logout-btn" onclick="logout()">Logout</button>
+    </header>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        text-align: center;
+        background-color: #f4f4f4;
+      }
+      h1 {
+        text-align: center;
+      }
+      .form-data {
+        width: 80%;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: white;
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        text-align: left;
+      }
+      .form-data div {
+        margin-bottom: 10px;
+      }
+      .form-data label {
+        font-weight: bold;
+      }
+      header {
+        background-color: #333;
+        color: white;
+        padding: 1rem;
+      }
+      table {
+        width: 80%;
+        margin: 2rem auto;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 1rem;
+        border: 1px solid #ddd;
+      }
+      th {
+        background-color: #333;
+        color: white;
+      }
+      .logout-btn {
+        position: absolute;
+        right: 1rem;
+        top: 1rem;
+        background-color: #f44336;
+        border: none;
+        color: white;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        font-size: 1rem;
+      }
+      .btn {
+        display: inline-block;
+        padding: 1rem 2rem;
+        margin: 1rem;
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-size: 1rem;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 id="formTitle"></h1>
+    <div class="form-data" id="formData">
+      <!-- Form data will be displayed here -->
+    </div>
+
+    <script>
+      async function logout() {
+        const jwtToken = localStorage.getItem('jwt');
+        if (!jwtToken) {
+          console.error('No JWT token found in local storage.');
+          return;
+        }
+
+        try {
+          const response = await fetch(
+            'https://api-carewallet.amolbohora.com/auth',
+            {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${jwtToken}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ type: 'logout' }),
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error('Logout failed');
+          }
+
+          localStorage.removeItem('jwt');
+          window.location.href = '/login.html'; // Redirect to login page after logout
+        } catch (error) {
+          console.error('Logout failed:', error);
+        }
+      }
+
+      async function verifySession() {
+        const token = localStorage.getItem('jwt');
+        if (token) {
+          try {
+            const response = await fetch(
+              'https://api-carewallet.amolbohora.com/auth',
+              {
+                method: 'POST',
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  type: 'session_verify',
+                }),
+              }
+            );
+
+            // const data = response.json();
+
+            if (response.ok) {
+            } else {
+              sessionStorage.removeItem('jwt'); // Remove invalid token
+              window.location.href = '/login.html';
+            }
+          } catch (error) {
+            console.error('Session verification failed:', error);
+            alert('ERROR');
+            sessionStorage.removeItem('jwt'); // Remove token on failure
+          }
+        } else {
+          console.log('User not logged in.');
+        }
+      }
+      verifySession();
+
+      function getQueryParam(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+      }
+
+      function decodeJwt(token) {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(
+          atob(base64)
+            .split('')
+            .map(function (c) {
+              return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            })
+            .join('')
+        );
+        return JSON.parse(jsonPayload);
+      }
+
+      async function fetchFormData(formType) {
+        await verifySession();
+
+        const jwtToken = localStorage.getItem('jwt');
+        const decodedToken = decodeJwt(jwtToken);
+        const username = decodedToken.username;
+
+        try {
+          const response = await fetch(
+            'https://api-carewallet.amolbohora.com/get_form',
+            {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${jwtToken}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                form_type: formType,
+              }),
+            }
+          );
+
+          if (!response.ok) {
+            const data = await response.json();
+            if (data.message === 'Form not found.') {
+              alert(
+                'Form Not Found. Please click on availabled forms in the next page.'
+              );
+              window.location.replace('/list_sub_forms.html');
+            }
+            if (data.message === 'Session expired or invalid.') {
+              sessionStorage.removeItem('jwt'); // Remove invalid token
+              window.location.href = '/login.html';
+            }
+            throw new Error('Failed to fetch form data');
+            alert('Failed to fetch form data');
+          }
+          const result = await response.json();
+          displayFormData(result.data.from_data, formType);
+        } catch (error) {
+          if (error.message === 'Session expired or invalid.') {
+            sessionStorage.removeItem('jwt'); // Remove invalid token
+            window.location.href = '/login.html';
+          }
+          console.error('Error fetching form data:', error);
+        }
+      }
+
+      function displayFormData(formData, formType) {
+        const formDataContainer = document.getElementById('formData');
+        const formTitle = document.getElementById('formTitle');
+
+        // Update the title to include the form type
+        formTitle.textContent = `Form Name - ${formType}`;
+
+        formDataContainer.innerHTML = '';
+
+        for (const [key, value] of Object.entries(formData)) {
+          const dataElement = document.createElement('div');
+          // Convert camelCase or PascalCase to space-separated words
+          const formattedKey = key
+            .replace(/([a-z])([A-Z])/g, '$1 $2')
+            .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2');
+          // Use "Not Provided" if the value is empty or null
+          dataElement.innerHTML = `<label>${formattedKey}:</label> ${
+            value || 'Not Provided'
+          }`;
+          formDataContainer.appendChild(dataElement);
+        }
+      }
+
+      // Get form type from query params and fetch form data on page load
+      window.onload = function () {
+        const formType = getQueryParam('form_type');
+        if (formType) {
+          fetchFormData(formType);
+        } else {
+          console.error('Form type not specified in query parameters.');
+        }
+      };
+    </script>
+  </body>
+</html>

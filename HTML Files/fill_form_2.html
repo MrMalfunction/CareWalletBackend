@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Insurance Card Information</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .form-group {
+        margin-bottom: 15px;
+      }
+      label {
+        display: block;
+        margin-bottom: 5px;
+      }
+      input[type='text'],
+      input[type='file'] {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 10px;
+        box-sizing: border-box;
+      }
+      button {
+        padding: 10px 15px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+      }
+      button:disabled {
+        background-color: #ccc;
+      }
+      #progress {
+        margin-top: 10px;
+        font-size: 14px;
+        color: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Enter Your Insurance Card Information</h2>
+    <form id="insuranceForm">
+      <div class="form-group">
+        <label for="insurerName">Insurer Name:</label>
+        <input type="text" id="insurerName" name="insurerName" required />
+      </div>
+      <div class="form-group">
+        <label for="memberId">Member ID:</label>
+        <input type="text" id="memberId" name="memberId" required />
+      </div>
+      <div class="form-group">
+        <label for="groupNumber">Group Number:</label>
+        <input type="text" id="groupNumber" name="groupNumber" required />
+      </div>
+      <div class="form-group">
+        <label for="plan">Plan:</label>
+        <input type="text" id="plan" name="plan" required />
+      </div>
+      <div class="form-group">
+        <label for="cardImage">Upload Insurance Card Image (for OCR):</label>
+        <input
+          type="file"
+          id="cardImage"
+          name="cardImage"
+          accept="image/*"
+          onchange="processOCR()"
+        />
+      </div>
+      <div id="progress"></div>
+      <button type="submit" id="submitBtn">Submit</button>
+    </form>
+
+    <!-- Tesseract.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@2.1.4/dist/tesseract.min.js"></script>
+
+    <script>
+      async function verifySession() {
+        const token = localStorage.getItem('jwt');
+        if (token) {
+          try {
+            const response = await fetch(
+              'https://api-carewallet.amolbohora.com/auth',
+              {
+                method: 'POST',
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  type: 'session_verify',
+                }),
+              }
+            );
+
+            if (response.ok) {
+              console.log('User session invalid');
+            } else {
+              sessionStorage.removeItem('jwt'); // Remove invalid token
+              window.location.href = '/login.html';
+            }
+          } catch (error) {
+            console.error('Session verification failed:', error);
+            sessionStorage.removeItem('jwt'); // Remove token on failure
+          }
+        } else {
+          console.log('User not logged in.');
+          sessionStorage.removeItem('jwt'); // Remove invalid token
+          window.location.replace('/login.html');
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', verifySession);
+      function processOCR() {
+        const fileInput = document.getElementById('cardImage');
+        const file = fileInput.files[0];
+        const progressElement = document.getElementById('progress');
+
+        if (file) {
+          progressElement.textContent = 'Processing OCR...';
+          const reader = new FileReader();
+          reader.onload = function () {
+            Tesseract.recognize(reader.result, 'eng', {
+              logger: (m) => {
+                console.log(m); // Log progress to console
+                if (m.status === 'recognizing text') {
+                  progressElement.textContent = `OCR Progress: ${Math.round(
+                    m.progress * 100
+                  )}%`;
+                }
+              },
+            })
+              .then(({ data: { text } }) => {
+                console.log('OCR Result:', text);
+
+                // Extracting fields using refined regex patterns
+                const insurerName = text.match(
+                  /BlueCross BlueShield|Aetna|UnitedHealthcare|Cigna|Kaiser Permanente/i
+                );
+                const memberId = text.match(/\s*[:\-]?\s*([A-Z0-9]{6,})/i); // Updated regex for Member ID
+                const groupNumber = text.match(/Group No\.\s+(\d+)/i);
+                const plan = text.match(/Plan\s+(\w+)/i);
+
+                if (insurerName)
+                  document.getElementById('insurerName').value =
+                    insurerName[0].trim();
+                if (memberId)
+                  document.getElementById('memberId').value =
+                    memberId[1].trim();
+                if (groupNumber)
+                  document.getElementById('groupNumber').value =
+                    groupNumber[1].trim();
+                if (plan)
+                  document.getElementById('plan').value = plan[1].trim();
+
+                progressElement.textContent = 'OCR processing completed.';
+                alert('OCR processed and form auto-filled.');
+              })
+              .catch((err) => {
+                console.error('OCR Error:', err);
+                progressElement.textContent =
+                  'Failed to process OCR. Please try again.';
+              });
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+
+      document
+        .getElementById('insuranceForm')
+        .addEventListener('submit', function (event) {
+          event.preventDefault();
+
+          // Creating the payload with form data and form_type
+          const payload = {
+            form_type: 'Form2',
+            form_data: {
+              InsurerName: document.getElementById('insurerName').value,
+              MemberId: document.getElementById('memberId').value,
+              GroupNumber: document.getElementById('groupNumber').value,
+              Plan: document.getElementById('plan').value,
+            },
+          };
+
+          // Example API call
+          fetch('https://api-carewallet.amolbohora.com/fill_form', {
+            method: 'POST',
+            headers: {
+              Authorization: 'Bearer ' + localStorage.getItem('jwt'),
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          })
+            .then((response) => {
+              if (response.ok) {
+                console.log('Form submitted successfully');
+                alert(
+                  'Form submitted successfully. Resubmitting would replace the curent information. Redirecting to Homepage.'
+                );
+                window.location.href = '/';
+              } else {
+                console.log(`Error submitting form: ${response.status}`);
+                throw new Error('Error Submitting Form');
+              }
+            })
+            .then((responseData) => {
+              console.log('Response Data:', responseData);
+            })
+            .catch((error) => {
+              console.error('Error submitting form:', error);
+            });
+        });
+    </script>
+  </body>
+</html>
